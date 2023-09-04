@@ -24,6 +24,8 @@ jobs:
           elif [[ "$comment_body" =~ ^/milestone\ (.+)?$ ]]; then
             command="milestone"
             milestone="${BASH_REMATCH[1]}"
+          elif [[ "$comment_body" =~ ^/lock?$ ]]; then
+            command="lock"
           fi
           echo "::set-output name=command::$command"
           echo "::set-output name=option::$option"
