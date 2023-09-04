@@ -45,10 +45,12 @@ jobs:
               if [[ "${{ steps.parse-comment.outputs.option }}" == "cp" ]]; then
                 echo "Closing issue $issue_number as completed"
                 # Close the issue as completed by adding a comment or changing the issue status
+                curl -X POST "https://api.github.com/repos/$repo_owner/$repo_name/issues/$issue_number" -H "Authorization: token $token" -d "{\"state\": \"closed\", \"state_reason\": \"completed\"}"
                 curl -X POST "https://api.github.com/repos/$repo_owner/$repo_name/issues/$issue_number/comments" -H "Authorization: token $token" -d "{\"body\": \"Issue closed as completed.\"}"
               elif [[ "${{ steps.parse-comment.outputs.option }}" == "np" ]]; then
                 echo "Closing issue $issue_number as not planned"
                 # Close the issue as not planned by adding a comment or changing the issue status
+                curl -X POST "https://api.github.com/repos/$repo_owner/$repo_name/issues/$issue_number" -H "Authorization: token $token" -d "{\"state\": \"closed\", \"state_reason\": \"not_planned\"}"
                 curl -X POST "https://api.github.com/repos/$repo_owner/$repo_name/issues/$issue_number/comments" -H "Authorization: token $token" -d "{\"body\": \"Issue closed as not planned.\"}"
               else
                 echo "Invalid option for /close command"
