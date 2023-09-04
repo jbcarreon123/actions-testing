@@ -14,17 +14,19 @@ jobs:
         id: parse-comment
         run: |
           comment_body=$(jq -r .comment.body $GITHUB_EVENT_PATH)
-          if [[ $comment_body =~ ^/close(\s(cp|np))?$ ]]; then
+          if [[ "$comment_body" =~ ^/close\ (cp|np)?$ ]]; then
             command="close"
-          elif [[ $comment_body =~ ^/ban\s\(([^)]+)\)\s(all)?$ ]]; then
+            option="${BASH_REMATCH[1]}"
+          elif [[ "$comment_body" =~ ^/ban\ (.+)\ (all)?$ ]]; then
             command="ban"
             username="${BASH_REMATCH[1]}"
             all="${BASH_REMATCH[2]}"
-          elif [[ $comment_body =~ ^/milestone\s([^)]+)?$ ]]; then
+          elif [[ "$comment_body" =~ ^/milestone\ (.+)?$ ]]; then
             command="milestone"
             milestone="${BASH_REMATCH[1]}"
           fi
           echo "::set-output name=command::$command"
+          echo "::set-output name=option::$option"
           echo "::set-output name=username::$username"
           echo "::set-output name=all::$all"
           echo "::set-output name=milestone::$milestone"
@@ -40,17 +42,24 @@ jobs:
 
           case "${{ steps.parse-comment.outputs.command }}" in
             "close")
+              if [[ "${{ steps.parse-comment.outputs.option }}" == "cp" ]]; then
+                echo "Closing issue $issue_number as completed"
+                # Implement the logic to close the issue as completed here
+              elif [[ "${{ steps.parse-comment.outputs.option }}" == "np" ]]; then
+                echo "Closing issue $issue_number as not planned"
+                # Implement the logic to close the issue as not planned here
+              else
+                echo "Invalid option for /close command"
+              fi
+              ;;
+            "ban")
               if [[ "${{ steps.parse-comment.outputs.all }}" == "all" ]]; then
                 echo "Banning ${{ steps.parse-comment.outputs.username }} on all repositories of $repo_owner"
                 # Implement the logic to ban the user on all repositories here
               else
-                echo "Closing issue $issue_number as ${{ steps.parse-comment.outputs.username }}"
-                # Implement the logic to close the issue here
+                echo "Banning ${{ steps.parse-comment.outputs.username }}"
+                # Implement the logic to ban the user here
               fi
-              ;;
-            "ban")
-              echo "Banning ${{ steps.parse-comment.outputs.username }}"
-              # Implement the logic to ban the user here
               ;;
             "milestone")
               if [[ "${{ steps.parse-comment.outputs.milestone }}" ]]; then
