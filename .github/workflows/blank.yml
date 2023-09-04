@@ -1,0 +1,69 @@
+name: Issue Comment Commands
+
+on:
+  issue_comment:
+    types:
+      - created
+
+jobs:
+  process_comment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if comment contains commands
+        id: parse-comment
+        run: |
+          comment_body=$(jq -r .comment.body $GITHUB_EVENT_PATH)
+          if [[ $comment_body =~ ^/close(\s(cp|np))?$ ]]; then
+            command="close"
+          elif [[ $comment_body =~ ^/ban\s\(([^)]+)\)\s(all)?$ ]]; then
+            command="ban"
+            username="${BASH_REMATCH[1]}"
+            all="${BASH_REMATCH[2]}"
+          elif [[ $comment_body =~ ^/milestone\s([^)]+)?$ ]]; then
+            command="milestone"
+            milestone="${BASH_REMATCH[1]}"
+          fi
+          echo "::set-output name=command::$command"
+          echo "::set-output name=username::$username"
+          echo "::set-output name=all::$all"
+          echo "::set-output name=milestone::$milestone"
+        shell: bash
+
+      - name: Perform actions based on commands
+        if: steps.parse-comment.outputs.command
+        run: |
+          token="${{ secrets.GITHUB_TOKEN }}"
+          issue_number=$(jq -r .issue.number $GITHUB_EVENT_PATH)
+          repo_owner=$(jq -r .repository.owner.login $GITHUB_EVENT_PATH)
+          repo_name=$(jq -r .repository.name $GITHUB_EVENT_PATH)
+
+          case "${{ steps.parse-comment.outputs.command }}" in
+            "close")
+              if [[ "${{ steps.parse-comment.outputs.all }}" == "all" ]]; then
+                echo "Banning ${{ steps.parse-comment.outputs.username }} on all repositories of $repo_owner"
+                # Implement the logic to ban the user on all repositories here
+              else
+                echo "Closing issue $issue_number as ${{ steps.parse-comment.outputs.username }}"
+                # Implement the logic to close the issue here
+              fi
+              ;;
+            "ban")
+              echo "Banning ${{ steps.parse-comment.outputs.username }}"
+              # Implement the logic to ban the user here
+              ;;
+            "milestone")
+              if [[ "${{ steps.parse-comment.outputs.milestone }}" ]]; then
+                echo "Adding issue $issue_number to milestone ${{ steps.parse-comment.outputs.milestone }}"
+                # Implement the logic to add the issue to the milestone here
+              else
+                echo "Removing issue $issue_number from milestone"
+                # Implement the logic to remove the issue from the milestone here
+              fi
+              ;;
+            *)
+              echo "Unknown command"
+              ;;
+          esac
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
