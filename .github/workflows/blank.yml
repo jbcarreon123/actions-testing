@@ -77,7 +77,7 @@ jobs:
                 # Implement logic to add the issue to the specified milestone
                 # Example: You can use the GitHub REST API to perform this action.
                 # Replace 'MILESTONE_NAME' with the actual milestone name.
-                curl -X POST "https://api.github.com/repos/$repo_owner/$repo_name/issues/$issue_number/milestones" -H "Authorization: token $token" -d "{\"milestone\": \"MILESTONE_NAME\"}"
+                curl -X POST "https://api.github.com/repos/$repo_owner/$repo_name/issues/$issue_number/milestones" -H "Authorization: token $token" -d "{\"milestone\": MILESTONE_NAME}"
               else
                 echo "Removing issue $issue_number from milestone"
                 # Implement logic to remove the issue from the milestone
